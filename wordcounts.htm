@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Word Score Calculator</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 800px; margin: auto; }
+    textarea { width: 100%; height: 200px; }
+    .results { margin-top: 1rem; white-space: pre-wrap; font-family: monospace; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+
+  <h1>Word Score Calculator</h1>
+  <p>Paste lyrics below and click "Calculate":</p>
+
+  <textarea id="lyricsInput" placeholder="Paste House of the Rising Sun lyrics here..."></textarea>
+  <br>
+  <button onclick="analyzeLyrics()">Calculate</button>
+
+  <div class="results" id="results"></div>
+
+  <script>
+    function cleanText(text) {
+      return text.replace(/'/g, '');
+    }
+
+    function calculateWordScore(text) {
+      const wordCounts = {};
+      let totalWords = 0;
+      let uniqueCount = 0;
+      let duplicateCount = 0;
+      let scoreUnique = 0;
+      let scoreDuplicates = 0;
+      const uniqueWords = new Set();
+
+      const cleaned = cleanText(text);
+      const words = cleaned.toLowerCase().match(/\b\w+\b/g) || [];
+      totalWords = words.length;
+
+      for (const word of words) {
+        if (!wordCounts[word]) {
+          wordCounts[word] = 1;
+          scoreUnique += 1000;
+          uniqueCount++;
+          uniqueWords.add(word);
+        } else {
+          wordCounts[word]++;
+          scoreDuplicates += 100;
+          duplicateCount++;
+        }
+      }
+
+      return {
+        totalWords,
+        uniqueCount,
+        duplicateCount,
+        scoreUnique,
+        scoreDuplicates,
+        totalScore: scoreUnique + scoreDuplicates,
+        sortedUniqueWords: Array.from(uniqueWords).sort()
+      };
+    }
+
+    function printWordsNicely(words, perLine = 5) {
+      let lines = [];
+      for (let i = 0; i < words.length; i += perLine) {
+        lines.push("  " + words.slice(i, i + perLine).join(", "));
+      }
+      return lines.join("\n");
+    }
+
+    function analyzeLyrics() {
+      const input = document.getElementById("lyricsInput").value;
+      const results = calculateWordScore(input);
+
+      const output = `
+Total words: ${results.totalWords}
+Unique words: ${results.uniqueCount} (worth ${results.scoreUnique})
+Duplicate words: ${results.duplicateCount} (worth ${results.scoreDuplicates})
+Total score: ${results.totalScore}
+
+Unique words (sorted):
+${printWordsNicely(results.sortedUniqueWords)}
+      `.trim();
+
+      document.getElementById("results").textContent = output;
+    }
+  </script>
+</body>
+</html>
